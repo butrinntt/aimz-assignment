@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   FaRegTrashAlt,
   FaPencilAlt,
@@ -10,7 +10,12 @@ import {
 } from "react-icons/fa";
 import { TbSelect } from "react-icons/tb";
 import type { iUser } from "../../../types";
-import { useDebounce, useFetch } from "../../../hooks";
+import {
+  useAppDispatch,
+  useAppSelector,
+  useDebounce,
+  useFetch,
+} from "../../../hooks";
 import {
   Button,
   Checkbox,
@@ -21,10 +26,17 @@ import {
   TextField,
 } from "../../../components";
 import { downloadCsv, sortData } from "../../../utils";
+import {
+  deleteUser,
+  deleteUsers,
+  setError,
+  setLoading,
+  setUsers,
+} from "../../../store";
 
 function UserDashboard() {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [data, setData] = useState<iUser[]>([]);
+  const { users, loading } = useAppSelector((state) => state.users);
+  const dispatch = useAppDispatch();
   const { fetchCsvData } = useFetch();
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openModalBulk, setOpenModalBulk] = useState<boolean>(false);
@@ -36,7 +48,6 @@ function UserDashboard() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 5;
   const navigate = useNavigate();
-  const location = useLocation();
   const [sortConfig, setSortConfig] = useState<{
     key: keyof iUser;
     direction: "asc" | "desc";
@@ -76,7 +87,7 @@ function UserDashboard() {
               className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 p-2 rounded transition-colors"
               onClick={() =>
                 navigate(`/edit-user/${item.id}`, {
-                  state: { user: item, data },
+                  state: { user: item },
                 })
               }
             >
@@ -118,7 +129,7 @@ function UserDashboard() {
   };
 
   const filteredData = useMemo(() => {
-    return data.filter((user) => {
+    return users.filter((user) => {
       setCurrentPage(1);
       const matchesSearch =
         user.first_name
@@ -134,7 +145,7 @@ function UserDashboard() {
 
       return matchesSearch && matchesGender;
     });
-  }, [data, debouncedSearchTerm, genderFilter]);
+  }, [users, debouncedSearchTerm, genderFilter]);
 
   const sortedData = useMemo(() => {
     return sortData(filteredData, sortConfig);
@@ -148,13 +159,24 @@ function UserDashboard() {
   const totalPages = Math.ceil(sortedData.length / pageSize);
 
   useEffect(() => {
-    if (location.state?.updated) {
-      setData(location.state.updated);
-    } else {
-      fetchCsvData("/mock_data.csv", setData);
-    }
-    setLoading(false);
-  }, []);
+    const fetchUsers = async () => {
+      if (users.length === 0) {
+        try {
+          dispatch(setLoading(true));
+          const data = await fetchCsvData<iUser>("/mock_data.csv");
+          if (data) {
+            dispatch(setUsers(data));
+          }
+        } catch (error) {
+          console.error(error);
+          dispatch(setError("Failed to fetch users"));
+        } finally {
+          dispatch(setLoading(false));
+        }
+      }
+    };
+    fetchUsers();
+  }, [dispatch, fetchCsvData, users.length]);
 
   const handleDeleteClick = (user: iUser) => {
     setUserToDelete(user);
@@ -167,36 +189,26 @@ function UserDashboard() {
 
   const confirmDelete = () => {
     if (userToDelete) {
-      const updatedData = data.filter((u) => u.id !== userToDelete.id);
-      setData(updatedData);
+      dispatch(deleteUser(userToDelete.id));
       setUserToDelete(null);
       setOpenModal(false);
-      navigate(location.pathname, {
-        state: { ...location.state, updated: updatedData },
-        replace: true,
-      });
     }
   };
 
   const confirmDeleteBulk = () => {
     if (selectedIds.length === 0) return;
-    const updatedData = data.filter((u) => !selectedIds.includes(u.id));
-    setData(updatedData);
+    dispatch(deleteUsers(selectedIds));
     setSelectedIds([]);
     setOpenModalBulk(false);
-    navigate(location.pathname, {
-      state: { ...location.state, updated: updatedData },
-      replace: true,
-    });
   };
 
   const handleBulkExport = () => {
-    const selectedUsers = data.filter((u) => selectedIds.includes(u.id));
+    const selectedUsers = users.filter((u) => selectedIds.includes(u.id));
     downloadCsv(selectedUsers, "selected_users.csv");
   };
 
   const selectAll = () => {
-    if (selectedIds.length === 0) {
+    if (filteredData.length !== selectedIds.length) {
       setSelectedIds(filteredData.map((d) => d.id));
     } else {
       setSelectedIds([]);
@@ -206,6 +218,11 @@ function UserDashboard() {
   if (loading) {
     return <TableSkeleton columns={columns.length} className="mt-4" />;
   }
+
+  const maxId = () => {
+    if (users.length === 0) return 0;
+    return Math.max(...users.map((user) => user.id));
+  };
 
   return (
     <div className="grid gap-6 w-full p-4 max-w-7xl mx-auto bg-gray-50 dark:bg-gray-900">
@@ -234,7 +251,9 @@ function UserDashboard() {
         <div className="flex flex-col gap-4 items-start justify-between">
           <div className="flex flex-wrap gap-2">
             <Button
-              onClick={() => navigate("/create-user", { state: { data } })}
+              onClick={() =>
+                navigate("/create-user", { state: { maxId: maxId() } })
+              }
               className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
             >
               <FaUserPlus size={14} />

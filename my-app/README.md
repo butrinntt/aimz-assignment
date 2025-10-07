@@ -91,3 +91,12 @@ my-app/
 ├── vite.config.ts   # Vite configuration
 ```
 
+## Approach and Challenges
+
+The data fetching and displaying part of the dashboard was fairly straightforward.
+The most challenging aspect, however, was implementing the CRUD functionality. Since the task was focused solely on the frontend, without any backend support, it was a bit tricky to handle creating, editing, and deleting users.
+
+To overcome this, I used Redux. When the users are fetched for the first time, they’re stored in the Redux state. From that point on, I work entirely with that state using the setUsers reducer. The create, edit, and delete operations are also managed through Redux, using the addUser, updateUser, and deleteUser (or deleteUsers for bulk deletion) reducers respectively.
+
+Implementing a proper backend would make the CRUD operations much easier and would also improve performance, as pagination, sorting, searching, and filtering could all be handled on the server side. However, I felt that this frontend-only approach added a valuable challenge to the task.
+

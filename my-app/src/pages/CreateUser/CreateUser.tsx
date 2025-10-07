@@ -4,11 +4,14 @@ import { FaArrowLeft, FaSave } from "react-icons/fa";
 import type { iUser, iUserCreateDto } from "../../types";
 import { validateUser, type iValidation } from "../../utils";
 import { Button, TextField } from "../../components";
+import { useAppDispatch } from "../../hooks";
+import { addUser } from "../../store";
 
 function CreateUser() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const location = useLocation();
-  const data: iUser[] = location.state?.data || [];
+  const maxId: number = location.state?.maxId || 0;
   const [formData, setFormData] = useState<iUserCreateDto>({
     first_name: "",
     last_name: "",
@@ -38,10 +41,10 @@ function CreateUser() {
     const validation = validateUser(formData);
     setErrors(validation.errorMessages);
     if (validation.hasError) return;
-    const newId = data.length > 0 ? Math.max(...data.map((u) => u.id)) + 1 : 1;
+    const newId = maxId + 1;
     const newUser: iUser = { id: newId, ...formData };
-    const updated = [...data, newUser];
-    navigate("/", { state: { updated } });
+    dispatch(addUser(newUser));
+    navigate("/");
   };
 
   const handleCancel = () => {

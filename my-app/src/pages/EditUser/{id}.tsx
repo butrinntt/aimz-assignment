@@ -1,18 +1,19 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { FaArrowLeft, FaSave, FaUserEdit } from "react-icons/fa";
 import { validateUser, type iValidation } from "../../utils";
 import type { iUser } from "../../types";
 import { Button, TextField } from "../../components";
+import { useAppDispatch } from "../../hooks";
+import { updateUser } from "../../store";
 
 function EditUser() {
   const { id } = useParams();
   const { state } = useLocation();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const userId = Number(id);
-  const data: iUser[] = useMemo(() => state?.data || [], [state]);
   const existingUser: iUser | undefined = state?.user;
-
   const [formData, setFormData] = useState<iUser | null>(null);
   const [errors, setErrors] = useState<iValidation["errorMessages"]>({
     first_name: "",
@@ -25,11 +26,8 @@ function EditUser() {
   useEffect(() => {
     if (existingUser) {
       setFormData(existingUser);
-    } else {
-      const found = data.find((u) => u.id === userId);
-      if (found) setFormData(found);
     }
-  }, [existingUser, userId, data]);
+  }, [existingUser, userId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -45,8 +43,8 @@ function EditUser() {
     const validation = validateUser(formData);
     setErrors(validation.errorMessages);
     if (validation.hasError) return;
-    const updated = data.map((u) => (u.id === userId ? formData : u));
-    navigate("/", { state: { updated } });
+    dispatch(updateUser(formData));
+    navigate("/");
   };
 
   const handleCancel = () => {

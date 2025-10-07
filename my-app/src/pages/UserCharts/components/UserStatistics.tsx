@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useFetch } from "../../../hooks";
+import { useEffect, useMemo } from "react";
+import { useAppDispatch, useAppSelector, useFetch } from "../../../hooks";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import type { iUser } from "../../../types";
@@ -12,33 +12,45 @@ import {
   IPDistribution,
   IPDistributionSkeleton,
 } from "../../../components";
+import { setError, setLoading, setUsers } from "../../../store";
 
 const UserStatistics = () => {
-  const [data, setData] = useState<iUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { users, loading } = useAppSelector((state) => state.users);
+  const dispatch = useAppDispatch();
   const { fetchCsvData } = useFetch();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await fetchCsvData("/mock_data.csv", setData);
-      setLoading(false);
+    const fetchUsers = async () => {
+      if (users.length === 0) {
+        try {
+          dispatch(setLoading(true));
+          const data = await fetchCsvData<iUser>("/mock_data.csv");
+          if (data) {
+            dispatch(setUsers(data));
+          }
+        } catch (error) {
+          console.error(error);
+          dispatch(setError("Failed to fetch users"));
+        } finally {
+          dispatch(setLoading(false));
+        }
+      }
     };
-    loadData();
-  }, []);
+    fetchUsers();
+  }, [dispatch, fetchCsvData, users.length]);
 
   const genderStats = useMemo(() => {
     return Object.entries(
-      data.reduce((acc, user) => {
+      users.reduce((acc, user) => {
         acc[user.gender] = (acc[user.gender] || 0) + 1;
         return acc;
       }, {} as Record<string, number>)
     ).map(([name, value]) => ({ name, value }));
-  }, [data]);
+  }, [users]);
 
   const emailDomains = useMemo(() => {
-    const domains = data.reduce((acc, user) => {
+    const domains = users.reduce((acc, user) => {
       const domain = user.email.split("@")[1];
       acc[domain] = (acc[domain] || 0) + 1;
       return acc;
@@ -48,11 +60,11 @@ const UserStatistics = () => {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-  }, [data]);
+  }, [users]);
 
   const ipDistribution = useMemo(() => {
     return Object.entries(
-      data.reduce((acc, user) => {
+      users.reduce((acc, user) => {
         const firstOctet = user.ip_address.split(".")[0];
         const range = `${firstOctet}.x.x.x`;
         acc[range] = (acc[range] || 0) + 1;
@@ -65,7 +77,7 @@ const UserStatistics = () => {
         if (a.name > b.name) return 1;
         return 0;
       });
-  }, [data]);
+  }, [users]);
 
   return (
     <div className="grid gap-6 w-full p-4 max-w-7xl mx-auto bg-gray-50 dark:bg-gray-900">
@@ -77,7 +89,7 @@ const UserStatistics = () => {
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             {loading
               ? "Loading..."
-              : `${data.length} user${data.length !== 1 ? "s" : ""}`}
+              : `${users.length} user${users.length !== 1 ? "s" : ""}`}
           </p>
         </div>
         <Button

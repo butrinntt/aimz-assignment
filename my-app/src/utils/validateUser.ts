@@ -1,6 +1,5 @@
 import type { iUserCreateDto, iUserEditDto } from "../types";
 
-
 export interface iValidation {
   hasError: boolean;
   errorMessages: {
@@ -28,7 +27,7 @@ export default function validateUser(
   if (!user.last_name?.trim()) {
     errors.last_name = "Last name must not be empty!";
   }
-  const emailRegex = /^[\w-\\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!user.email?.trim()) {
     errors.email = "Email must not be empty!";
   } else if (!emailRegex.test(user.email)) {
@@ -36,6 +35,28 @@ export default function validateUser(
   }
   if (!user.ip_address?.trim()) {
     errors.ip_address = "IP address must not be empty!";
+  } else {
+    const ipAddress = user.ip_address.trim();
+    const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+    if (!ipv4Regex.test(ipAddress)) {
+      errors.ip_address =
+        "IP address must be in valid IPv4 format (e.g., 192.168.1.1)!";
+    } else {
+      const octets = ipAddress.split(".");
+      const invalidOctet = octets.find((octet) => {
+        const num = parseInt(octet, 10);
+        return (
+          num < 0 ||
+          num > 255 ||
+          isNaN(num) ||
+          (octet.length > 1 && octet.startsWith("0"))
+        );
+      });
+      if (invalidOctet !== undefined) {
+        errors.ip_address =
+          "Each IP address segment must be between 0 and 255 and cannot have leading zeros!";
+      }
+    }
   }
   if (!user.gender?.trim()) {
     errors.gender = "Gender must not be empty!";

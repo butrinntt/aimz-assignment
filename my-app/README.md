@@ -35,11 +35,15 @@
 ## Features Implemented
 
 - **User Dashboard:**
+  - Display users on a table.
+
+- **User Charts:**
   - Displays user statistics and data visualizations.
   - Includes charts for gender distribution, email domains, and IP distribution.
 
 - **User Management:**
-  - Create, edit, and manage user profiles.
+  - Create, edit, delete and export users to CSV.
+  - Select users for bulk deletion, or export to CSV.
 
 - **Theming:**
   - Light and dark mode toggle.
@@ -47,8 +51,20 @@
 - **Pagination:**
   - Efficient navigation through large datasets.
 
+- **Sort:**
+  - Sort by any column.
+
+- **Search:**
+  - Search users by First name, Last name or Email.
+  
+- **Filter:**
+  - Filter users based on gender.
+
+- **Modal:**
+  - Modals for confirming the deletion of user(s).
+
 - **Reusable Components:**
-  - Modular and reusable UI components like buttons, modals, and tables.
+  - Modular and reusable UI components like buttons, modals, tables etc.
 
 ## Technologies Used
 

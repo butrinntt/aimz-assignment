@@ -97,7 +97,11 @@ function EditUser() {
           </div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form
+            onSubmit={handleSubmit}
+            className="p-6 space-y-6"
+            noValidate={true}
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <TextField
                 name="first_name"

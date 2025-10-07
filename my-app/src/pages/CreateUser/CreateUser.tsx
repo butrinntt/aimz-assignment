@@ -71,7 +71,11 @@ function CreateUser() {
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form
+            onSubmit={handleSubmit}
+            className="p-6 space-y-6"
+            noValidate={true}
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <TextField
                 name="first_name"
@@ -80,7 +84,6 @@ function CreateUser() {
                 placeholder="First Name"
                 error={errors.first_name}
                 label="First Name *"
-                required
               />
               <TextField
                 name="last_name"
@@ -89,7 +92,6 @@ function CreateUser() {
                 placeholder="Last Name"
                 error={errors.last_name}
                 label="Last Name *"
-                required
               />
             </div>
 
@@ -101,7 +103,6 @@ function CreateUser() {
               error={errors.email}
               label="Email Address *"
               type="email"
-              required
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -112,7 +113,6 @@ function CreateUser() {
                 placeholder="e.g., Male, Female, Non-binary"
                 error={errors.gender}
                 label="Gender *"
-                required
               />
               <TextField
                 name="ip_address"
@@ -121,7 +121,6 @@ function CreateUser() {
                 placeholder="192.168.1.1"
                 error={errors.ip_address}
                 label="IP Address *"
-                required
               />
             </div>
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
@@ -147,7 +146,7 @@ function CreateUser() {
             Quick Tips
           </h3>
           <ul className="text-sm text-blue-700 dark:text-blue-500 space-y-1">
-            <li>• All fields marked with * are required</li>
+            <li>• All fields marked with * are </li>
             <li>• Use valid email format (e.g., user@example.com)</li>
             <li>• IP address should be in IPv4 format (e.g., 192.168.1.1)</li>
             <li>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import clsx from "clsx";
 import type { InputHTMLAttributes, TextareaHTMLAttributes } from "react";
 
@@ -28,13 +28,10 @@ const TextField: React.FC<Props> = ({
   rootClassName = "mb-6",
   endIcon,
   isTextArea = false,
-  isDate,
   isNumber,
-  isEmail,
   disabled,
   ...props
 }) => {
-  const [emailError, setEmailError] = useState<string | null>(null);
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (isNumber) {
       const allowedKeys = [
@@ -55,18 +52,6 @@ const TextField: React.FC<Props> = ({
       if (!isNumberKey && !allowedKeys.includes(event.key)) {
         event.preventDefault();
       }
-    }
-  };
-
-  const handleEmailValidation = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (isEmail) {
-      const value = event.target.value;
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      setEmailError(
-        value && !emailRegex.test(value) ? "Invalid email address" : null
-      );
     }
   };
 
@@ -93,21 +78,16 @@ const TextField: React.FC<Props> = ({
           />
         ) : (
           <input
-            type={
-              isDate ? "date" : isNumber ? "text" : isEmail ? "email" : type
-            }
+            type={isNumber ? "text" : type}
             className={clsx(
               "w-full p-2 rounded-lg border placeholder:text-md text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400",
               className,
               disabled
                 ? "bg-gray-100 dark:bg-gray-700 cursor-not-allowed text-gray-500 dark:text-gray-400"
                 : "bg-white dark:bg-gray-700",
-              error || emailError
-                ? "border-red-500"
-                : "border-gray-300 dark:border-gray-600"
+              error ? "border-red-500" : "border-gray-300 dark:border-gray-600"
             )}
             onKeyDown={handleKeyDown}
-            onChange={handleEmailValidation}
             disabled={disabled}
             {...(props as InputHTMLAttributes<HTMLInputElement>)}
           />
@@ -119,7 +99,7 @@ const TextField: React.FC<Props> = ({
           </span>
         )}
       </div>
-      {(error || emailError) && (
+      {error && (
         <p
           data-testid={
             "data-testid" in props
@@ -128,7 +108,7 @@ const TextField: React.FC<Props> = ({
           }
           className="text-red-500 dark:text-red-400 text-sm p-0 m-0"
         >
-          {error || emailError}
+          {error}
         </p>
       )}
     </div>

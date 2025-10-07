@@ -1,4 +1,12 @@
-import { PieChart, Pie, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  Legend,
+  type LegendPayload,
+} from "recharts";
 
 const COLORS = [
   "#0088FE",
@@ -14,6 +22,7 @@ interface GenderDistributionProps {
 }
 
 const GenderDistribution: React.FC<GenderDistributionProps> = ({ data }) => {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
   return (
     <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
       <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
@@ -23,13 +32,9 @@ const GenderDistribution: React.FC<GenderDistributionProps> = ({ data }) => {
         <PieChart>
           <Pie
             data={data}
-            cx="50%"
+            cx="55%"
             cy="50%"
-            labelLine={false}
-            label={({ name, percent }) =>
-              `${name} (${(Number(percent) * 100).toFixed(0)}%)`
-            }
-            outerRadius={130}
+            outerRadius={100}
             fill="#8884d8"
             dataKey="value"
           >
@@ -41,6 +46,23 @@ const GenderDistribution: React.FC<GenderDistributionProps> = ({ data }) => {
             ))}
           </Pie>
           <Tooltip />
+          <Legend
+            layout="vertical"
+            verticalAlign="middle"
+            align="right"
+            wrapperStyle={{
+              paddingLeft: "20px",
+              right: 0,
+            }}
+            formatter={(value, entry: LegendPayload) => {
+              return (
+                <span className="text-gray-700 dark:text-gray-300">
+                  {value}: {entry.payload?.value} (
+                  {((entry.payload?.value / total) * 100).toFixed(2)}%)
+                </span>
+              );
+            }}
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>
